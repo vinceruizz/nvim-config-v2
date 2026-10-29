@@ -9,6 +9,7 @@ return {
         },
 
         opts = {
+            lsp = { progress = { enabled = false }, signature = { enabled = false } },
             -- Floating command line
             cmdline = {
                 enabled = true,

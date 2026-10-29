@@ -5,8 +5,11 @@ vim.api.nvim_create_autocmd("FileType", {
         "c",
         "cpp",
         "javascript",
+        "javascriptreact",
         "typescript",
+        "typescriptreact",
         "java",
+        "cs",
     },
     callback = function(args)
         pcall(vim.treesitter.start, args.buf)

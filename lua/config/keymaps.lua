@@ -2,6 +2,14 @@ vim.g.mapleader = " "
 
 local keymap = vim.keymap.set
 
+keymap("n", "<leader>?", function()
+    require("config.cheatsheet").toggle()
+end, { desc = "Open Neovim cheat sheet" })
+
+vim.api.nvim_create_user_command("CheatSheet", function()
+    require("config.cheatsheet").toggle()
+end, { desc = "Open the graphical Neovim cheat sheet" })
+
 -- Save and quit
 keymap("n", "<leader>w", "<cmd>w<CR>")
 keymap("n", "<leader>q", "<cmd>q<CR>")
@@ -11,6 +19,11 @@ keymap("n", "<C-h>", "<C-w>h")
 keymap("n", "<C-j>", "<C-w>j")
 keymap("n", "<C-k>", "<C-w>k")
 keymap("n", "<C-l>", "<C-w>l")
+
+-- Persistent terminal below the current editing pane
+keymap("n", "<leader>tt", function()
+    require("config.terminal").toggle()
+end, { desc = "Toggle terminal in horizontal split" })
 
 -- Clear search highlighting
 keymap("n", "<Esc>", "<cmd>nohlsearch<CR>")

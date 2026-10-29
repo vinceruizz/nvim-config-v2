@@ -47,28 +47,59 @@ local function apply_theme()
     set(0, "StatusLine",   { fg = colors.fg, bg = "NONE" })
     set(0, "StatusLineNC", { fg = colors.muted, bg = "NONE" })
 
-    -- Basic syntax highlighting
-    set(0, "Comment",    { fg = colors.muted, italic = true })
-    set(0, "String",     { fg = colors.orange })
-    set(0, "Number",     { fg = colors.green })
-    set(0, "Boolean",    { fg = colors.green })
-    set(0, "Constant",   { fg = colors.green })
-    set(0, "Function",   { fg = colors.cyan })
-    set(0, "Statement",  { fg = colors.blue })
-    set(0, "Keyword",    { fg = colors.blue })
-    set(0, "Type",       { fg = colors.purple })
-    set(0, "Identifier", { fg = colors.fg })
-    set(0, "Special",    { fg = colors.orange })
-    set(0, "PreProc",    { fg = colors.purple })
+    -- One Dark-inspired syntax; keep the existing transparent UI styling.
+    local syntax = {
+        fg = "#abb2bf", comment = "#7f848e", red = "#e06c75",
+        green = "#98c379", yellow = "#e5c07b", blue = "#61afef",
+        purple = "#c678dd", cyan = "#56b6c2", orange = "#d19a66",
+    }
+    local groups = {
+        Comment = { fg = syntax.comment, italic = true },
+        String = { fg = syntax.green },
+        Character = { fg = syntax.green },
+        Number = { fg = syntax.orange },
+        Float = { fg = syntax.orange },
+        Boolean = { fg = syntax.orange },
+        Constant = { fg = syntax.orange },
+        Function = { fg = syntax.blue },
+        Statement = { fg = syntax.purple },
+        Keyword = { fg = syntax.purple },
+        Type = { fg = syntax.yellow },
+        Identifier = { fg = syntax.red },
+        Special = { fg = syntax.cyan },
+        PreProc = { fg = syntax.yellow },
+        Operator = { fg = syntax.cyan },
+        Delimiter = { fg = syntax.fg },
+        DiagnosticError = { fg = syntax.red },
+        DiagnosticWarn = { fg = syntax.yellow },
+        DiagnosticInfo = { fg = syntax.blue },
+        DiagnosticHint = { fg = syntax.comment },
+    }
+    for group, definition in pairs(groups) do
+        set(0, group, definition)
+    end
 
-    -- Common Treesitter groups
-    set(0, "@keyword",  { link = "Keyword" })
-    set(0, "@function", { link = "Function" })
-    set(0, "@string",   { link = "String" })
-    set(0, "@comment",  { link = "Comment" })
-    set(0, "@type",     { link = "Type" })
-    set(0, "@number",   { link = "Number" })
-    set(0, "@boolean",  { link = "Boolean" })
+    local captures = {
+        ["@comment"] = "Comment", ["@string"] = "String",
+        ["@character"] = "Character", ["@number"] = "Number",
+        ["@boolean"] = "Boolean", ["@constant"] = "Constant",
+        ["@function"] = "Function", ["@function.builtin"] = "Special",
+        ["@function.call"] = "Function", ["@function.method"] = "Function",
+        ["@function.method.call"] = "Function", ["@constructor"] = "Type",
+        ["@keyword"] = "Keyword", ["@keyword.operator"] = "Keyword",
+        ["@operator"] = "Operator", ["@type"] = "Type",
+        ["@type.builtin"] = "Type", ["@module"] = "Type",
+        ["@variable.member"] = "Identifier", ["@property"] = "Identifier",
+        ["@tag"] = "Identifier", ["@tag.attribute"] = "Type",
+        ["@punctuation"] = "Delimiter", ["@punctuation.delimiter"] = "Delimiter",
+        ["@punctuation.bracket"] = "Delimiter", ["@punctuation.special"] = "Special",
+    }
+    set(0, "@variable", { fg = syntax.fg })
+    set(0, "@variable.parameter", { fg = syntax.fg })
+    set(0, "@variable.builtin", { fg = syntax.red })
+    for capture, group in pairs(captures) do
+        set(0, capture, { link = group })
+    end
     -- Noice floating command popup
 set(0, "NoiceCmdlinePopup", {
     fg = "#e0d9c7",
