@@ -3,6 +3,29 @@
 set -eu
 app=nvim
 source_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
+# Also work when downloaded on its own or run via bash <(curl ...).
+if [ ! -f "$source_dir/scripts/install-common.sh" ] || [ ! -f "$source_dir/init.lua" ]; then
+    remote_dry_run=${NVIM_INSTALL_DRY_RUN:-0}; remote_config_only=0
+    for argument do
+        case "$argument" in
+            --dry-run) remote_dry_run=1 ;;
+            --config-only) remote_config_only=1 ;;
+            --full) remote_config_only=0 ;;
+            --help|-h)
+                printf '%s\n' 'Neovim Config Installer' 'Usage: bash install.sh [--full | --config-only] [--dry-run]' \
+                    'Default: install dependencies, back up your config, and set up plugins and language tools.'
+                exit 0 ;;
+            *) printf 'Unknown option: %s\n' "$argument" >&2; exit 1 ;;
+        esac
+    done
+    command -v nvim >/dev/null 2>&1 || { printf '%s\n' 'Install Neovim 0.12+ first.' >&2; exit 1; }
+    command -v curl >/dev/null 2>&1 || { printf '%s\n' 'Install curl first.' >&2; exit 1; }
+    printf '\n%s\n\n' '=== Neovim Config Installer ==='
+    NVIM_INSTALL_DRY_RUN="$remote_dry_run" NVIM_INSTALL_CONFIG_ONLY="$remote_config_only" \
+        nvim --headless -u NONE -i NONE -n -c \
+        "lua local ok,e=pcall(function() local s=vim.fn.system({'curl','-fsSL','https://raw.githubusercontent.com/vinceruizz/nvim-config-v2/main/scripts/install.lua'}); assert(vim.v.shell_error==0,s); assert(loadstring(s))().run({config_only=vim.env.NVIM_INSTALL_CONFIG_ONLY=='1'}) end); if not ok then io.stderr:write(tostring(e)); vim.cmd('cquit 1') end"
+    exit $?
+fi
 . "$source_dir/scripts/install-common.sh"
 install_deps=0; bootstrap=0; build_nvim=0; font=0; dry_run=0; full=0
 target="${XDG_CONFIG_HOME:-$HOME/.config}/${NVIM_APPNAME:-nvim}"
@@ -70,7 +93,7 @@ if [ "$bootstrap" = 1 ]; then
     node -e 'if (Number(process.versions.node.split(".")[0]) < 22) process.exit(1)' \
         || fail 'Node.js 22+ is required for the language tools.'
 fi
-deploy_files "$source_dir" "$target" init.lua lazy-lock.json lua scripts install.sh README.md DEBUGGING.md
+deploy_files "$source_dir" "$target" init.lua lazy-lock.json lua scripts install.sh install.ps1 README.md DEBUGGING.md
 if [ "$font" = 1 ]; then install_font; fi
 if [ "$bootstrap" = 1 ]; then
     # Tell Neovim which XDG application name to use, including custom targets.

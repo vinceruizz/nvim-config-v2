@@ -1,80 +1,102 @@
-# My Neovim setup
+# Neovim Config
 
-A transparent theme, file explorer, debugger, and built-in terminal—with Codex
-alongside your code. Supports C/C++, Python, JavaScript/TypeScript, C#, Java and Lua.
+My Neovim setup with a transparent theme, a file explorer, and debugging built in.
 
-## Get it running
+## Features
 
-You'll need **Neovim 0.12+**, **curl**, and an internet connection. Paste this into
-your terminal on **Linux, macOS or Windows**:
+- File explorer and project-wide search
+- Go to definitions, find references, and rename symbols
+- Debugger with breakpoints, stepping, variables and watches
+- Syntax highlighting and automatic bracket closing
+- Terminal and Codex panels that stay running when hidden
+- A built-in cheat sheet: **Space ?**
+
+## Installation
+
+### Prerequisites
+
+You just need **Neovim 0.12+**, **curl**, and an internet connection.
+[Get Neovim here](https://github.com/neovim/neovim/releases) if you need it.
+The installer handles the other tools, language runtimes and plugins.
+
+### Quick install — Linux / macOS
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/vinceruizz/nvim-config-v2/main/install.sh)
+```
+
+### Quick install — Windows (PowerShell)
+
+```powershell
+curl.exe -fL https://raw.githubusercontent.com/vinceruizz/nvim-config-v2/main/install.ps1 -o "$env:TEMP\nvim-install.ps1"
+if ($LASTEXITCODE -eq 0) { powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:TEMP\nvim-install.ps1" }
+```
+
+**Your existing config is backed up.** Setup detects your OS and may ask for
+permission to install dependencies. Run it as your regular user, without `sudo`.
+On a Mac, finish any Apple Command Line Tools prompt and rerun if needed.
+
+### After installation
+
+1. Choose **JetBrainsMono Nerd Font** in your terminal settings and restart it.
+2. Open your project: `nvim .`
+3. Press **Space ?** to see your shortcuts. Sign in if you want to use Codex.
+
+## Keybindings
+
+| Keys | Action |
+| --- | --- |
+| Space e | Switch between code and explorer |
+| Space ff / Space fg | Find files / search project text |
+| Space tt | Toggle terminal |
+| Space cc | Toggle Codex |
+| gd / gr | Go to definition / find references |
+| Space rn | Rename a symbol |
+| F9 | Toggle breakpoint |
+| F5 | Start / continue debugging |
+| F10 / F11 | Step over / into |
+| Shift F11 / Shift F5 | Step out / stop debugging |
+| Space du | Toggle debugger panels |
+| Space ? | Open the full cheat sheet |
+
+## Debugging
+
+Supports **Python, JavaScript/TypeScript, C/C++, C# and Java**. Save your file,
+set a breakpoint with **F9**, then press **F5** and choose how to run it.
+
+Some projects need a build first. The [debugging guide](DEBUGGING.md) covers each
+language and project-specific launch settings.
+
+## Customization
+
+- **Plugins:** add a file in `lua/plugins/`.
+- **Shortcuts:** edit `lua/config/keymaps.lua`.
+- **Editor settings:** edit `lua/config/options.lua`.
+- **Theme:** edit `lua/config/theme.lua`.
+- **Language tools:** edit `lua/config/lsp.lua`.
+
+<details>
+<summary>Setup notes and troubleshooting</summary>
+
+- The installer uses Homebrew on macOS, Scoop on Windows, and your package manager
+  on Linux. Windows doesn't need Git Bash or WSL.
+- Full Windows setup needs x64 Neovim. Native Windows ARM64, Alpine and Nix have
+  tool availability limits; older Linux versions may need manual dependencies.
+- Config goes in `~/.config/nvim`, or `%LOCALAPPDATA%\nvim` on Windows. Custom XDG
+  paths and `NVIM_APPNAME` work too. Language runtimes live in Neovim's data folder.
+- Setup stopped? Fix the reported problem and rerun. In Neovim, try `:checkhealth`
+  or `:MasonLog`. Your projects still need their own dependencies.
+- To undo setup, close Neovim and put the reported backup back in place of the new config.
+
+Prefer one identical command for all three operating systems?
 
 ```sh
 nvim --headless -u NONE -i NONE -n -c "lua local s=vim.fn.system({'curl','-fsSL','https://raw.githubusercontent.com/vinceruizz/nvim-config-v2/main/scripts/install.lua'}); assert(vim.v.shell_error==0,s); assert(loadstring(s))().run()"
 ```
 
-It figures out your OS, installs the tools and plugins, and puts everything in the
-right place. **Your old config gets backed up.** Give it a few minutes.
-
-Run it as your regular user, without `sudo`. It may ask for permission to install
-system packages. On a Mac, finish any Apple Command Line Tools prompt, then rerun
-if needed. On Windows, use a regular PowerShell or Command Prompt window.
-
-Once it's done:
-
-1. Restart your terminal and choose **JetBrainsMono Nerd Font** in its settings.
-2. Open your project with `nvim .`.
-3. Press **Space ?** for the cheat sheet.
-
-The installer includes the language tools, runtimes and font. Your projects still
-need their own dependencies. To use Codex, you'll need to sign in.
-
-## A few handy shortcuts
-
-| Keys | What they do |
-| --- | --- |
-| Space e | Switch between your code and the explorer |
-| Space ff / Space fg | Find a file / search across files |
-| Space tt | Show or hide the terminal |
-| Space cc | Show or hide Codex |
-| gd / gr | Jump to a definition / find references |
-| F9 / F5 | Set a breakpoint / start or continue debugging |
-| Space ? | Open the full cheat sheet |
-
-See the [debugging guide](DEBUGGING.md) when you're ready to debug a project.
-
-## Something didn't work?
-
-Check `:checkhealth` in Neovim, or `:MasonLog` if a language tool won't install.
-If setup stops, fix the reported problem and run the same command again.
-
-Want your old config back? Close Neovim and replace the new config folder with
-the backup shown by the installer.
-
-<details>
-<summary>Extra setup options and platform notes</summary>
-
-- Default config folder: `~/.config/nvim` on Linux/macOS, `%LOCALAPPDATA%\nvim` on Windows.
-- Plugins and language runtimes live in Neovim's data folder. Existing global
-  Node, Java and .NET installs aren't replaced. Custom XDG paths and `NVIM_APPNAME` work too.
-- Setup uses Homebrew on macOS, Scoop on Windows, and your package manager on Linux.
-- Full Windows setup needs x64 Neovim. Native Windows ARM64, Alpine and Nix have
-  tool availability limits; older Linux versions or managed work computers may
-  also need manual setup.
-
-Already cloned the repo? Run this from its folder:
-
-```sh
-nvim --headless -u NONE -i NONE -n -c "lua dofile('scripts/install.lua').run()"
-```
-
-Replace `.run()` with `.run({dry_run=true})` to preview, or
-`.run({config_only=true})` to skip dependency installation. The older
-`sh install.sh --help` options still work on Linux/macOS.
-
-Working on the installer? Run its offline checks with:
-
-```sh
-nvim --headless -u NONE -i NONE -n -c "luafile scripts/test-cross-platform.lua"
-```
+From a local checkout, use `sh install.sh --full` on Linux/macOS, or
+`powershell.exe -NoProfile -ExecutionPolicy Bypass -File install.ps1` on Windows.
+Add `--dry-run` / `-DryRun` to preview. Local `sh install.sh` keeps its config-only
+default; `--help` lists the other options.
 
 </details>

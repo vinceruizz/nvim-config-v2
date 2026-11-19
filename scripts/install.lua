@@ -15,7 +15,7 @@ function M.platform(sysname, machine)
     return os_name, arch
 end
 
-local function note(message) io.stdout:write(message .. '\n'); io.stdout:flush() end
+local function note(message) io.stdout:write('[INFO] ' .. message .. '\n'); io.stdout:flush() end
 local function quote_ps(value) return "'" .. value:gsub("'", "''") .. "'" end
 
 function M.run_command(command, windows, options)
@@ -120,7 +120,7 @@ function M.deploy(source, target)
     vim.fn.mkdir(parent, 'p')
     vim.fn.mkdir(stage, 'p')
     local ok, err = pcall(function()
-        for _, name in ipairs({ 'init.lua', 'lazy-lock.json', 'lua', 'scripts', 'install.sh', 'README.md', 'DEBUGGING.md' }) do
+        for _, name in ipairs({ 'init.lua', 'lazy-lock.json', 'lua', 'scripts', 'install.sh', 'install.ps1', 'README.md', 'DEBUGGING.md' }) do
             copy(vim.fs.joinpath(source, name), vim.fs.joinpath(stage, name))
         end
         if uv.fs_lstat(target) then
@@ -313,6 +313,7 @@ function M.install(options)
         local manifest
         if not options.config_only then
             vim.fn.mkdir(ctx.tools, 'p')
+            note('Installing dependencies...')
             manifest = dependencies(ctx)
         end
         local source = ctx.source
@@ -322,21 +323,26 @@ function M.install(options)
             unpack_archive(zip, vim.fs.joinpath(ctx.work, 'config'), ctx.windows)
             source = only_directory(vim.fs.joinpath(ctx.work, 'config'))
         end
+        note('Backing up and installing the config...')
         M.deploy(source, ctx.target)
         if manifest then
             write_json(vim.fs.joinpath(vim.fn.stdpath('data'), 'installer', 'environment.json'), manifest)
+            note('Installing the font...')
             install_font(ctx)
             -- Fresh process: load the installed config, not a -u NONE session.
             local old_parent, old_name = vim.env.XDG_CONFIG_HOME, vim.env.NVIM_APPNAME
             vim.env.XDG_CONFIG_HOME, vim.env.NVIM_APPNAME = vim.fs.dirname(ctx.target), vim.fs.basename(ctx.target)
             vim.env.NVIM_INSTALL_BOOTSTRAP = '1'
             vim.env.NVIM_BOOTSTRAP_FILE = vim.fs.joinpath(ctx.target, 'scripts', 'bootstrap.lua')
+            note('Setting up plugins, syntax highlighting and language tools...')
             local boot_ok, boot_err = pcall(M.run_command, { vim.v.progpath, '--headless', '-n', '-i', 'NONE',
                 '-c', 'lua dofile(vim.env.NVIM_BOOTSTRAP_FILE)' }, ctx.windows)
             vim.env.XDG_CONFIG_HOME, vim.env.NVIM_APPNAME = old_parent, old_name
             assert(boot_ok, boot_err)
         end
-        note('Installed. Restart your terminal, choose the Nerd Font, then run nvim. Codex requires sign-in.')
+        note('Installation complete!')
+        note('Next: choose JetBrainsMono Nerd Font in your terminal, then open your project with nvim .')
+        note('Space ? opens the cheat sheet. F9 sets a breakpoint; F5 starts debugging. Sign in to use Codex.')
     end, debug.traceback)
     vim.fn.delete(ctx.work, 'rf')
     assert(ok, err)

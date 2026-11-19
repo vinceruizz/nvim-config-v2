@@ -243,6 +243,34 @@ class Installers(unittest.TestCase):
         self.assertIn('Platform:', result.stdout + result.stderr)
         self.assertFalse((Path(self.env['XDG_CONFIG_HOME']) / 'nvim').exists())
 
+    def test_downloaded_shell_entry_and_failure_exit(self):
+        nvim = shutil.which('nvim')
+        bash = shutil.which('bash')
+        if not nvim or not bash:
+            self.skipTest('Neovim and bash required')
+        self.mock('nvim', '#!/bin/sh\nexec ' + repr(nvim) + ' "$@"\n')
+        self.mock('curl', '#!' + sys.executable + '\n'
+                  'import os,sys\nfrom pathlib import Path\n'
+                  'if os.environ.get("FAIL_CURL") == "1": sys.exit(22)\n'
+                  'url = sys.argv[-1]\n'
+                  'name = "install.sh" if url.endswith("/install.sh") else "scripts/install.lua"\n'
+                  'sys.stdout.write((Path(os.environ["ENTRY_SOURCE"]) / name).read_text())\n')
+        env = dict(self.env, ENTRY_SOURCE=str(NVIM), NVIM_INSTALL_DRY_RUN='1',
+                   NVIM_LOG_FILE=str(self.root / 'nvim.log'))
+        url = 'https://raw.githubusercontent.com/vinceruizz/nvim-config-v2/main/install.sh'
+        command = f'bash <(curl -fsSL {url})'
+        result = subprocess.run([bash, '-c', command], env=env, text=True, capture_output=True, timeout=20)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('Neovim Config Installer', result.stdout)
+        self.assertIn('Platform:', result.stdout)
+        # Test the standalone shell wrapper's inner download failure without hanging.
+        standalone = self.root / 'install.sh'
+        shutil.copy(NVIM / 'install.sh', standalone)
+        env['FAIL_CURL'] = '1'
+        result = subprocess.run([bash, str(standalone)], env=env, text=True, capture_output=True, timeout=20)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertFalse((Path(self.env['XDG_CONFIG_HOME']) / 'nvim').exists())
+
     def test_full_linux_prerequisite_dispatch_is_offline(self):
         # Restrict PATH to mocks: no host package manager can ever execute.
         env = dict(self.env, PATH=str(self.bin), WAYLAND_DISPLAY='')

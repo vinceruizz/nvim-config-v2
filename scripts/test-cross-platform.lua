@@ -15,7 +15,7 @@ local ok, err = xpcall(function()
  end)
  local source = root .. '/source'
  vim.fn.mkdir(source .. '/lua/config', 'p'); vim.fn.mkdir(source .. '/scripts', 'p')
- for _, name in ipairs({'init.lua','lazy-lock.json','install.sh','README.md','DEBUGGING.md','lua/config/file.lua','scripts/install.lua'}) do
+ for _, name in ipairs({'init.lua','lazy-lock.json','install.sh','install.ps1','README.md','DEBUGGING.md','lua/config/file.lua','scripts/install.lua'}) do
   vim.fn.writefile({'source ' .. name}, source .. '/' .. name)
  end
  vim.fn.writefile({'do not deploy'}, source .. '/.private')

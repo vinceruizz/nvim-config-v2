@@ -42,6 +42,13 @@ jobs:
           "$env:RUNNER_TEMP\nvim\nvim-win64\bin" | Out-File -Append -Encoding utf8 $env:GITHUB_PATH
       - name: Offline installer tests
         run: nvim --headless -u NONE -i NONE -n -c "luafile scripts/test-cross-platform.lua"
+      - name: Windows entry-point preview
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./install.ps1 -DryRun
+      - name: POSIX entry-point preview
+        if: runner.os != 'Windows'
+        run: sh install.sh --full --dry-run
       - name: Full installer smoke test
         if: github.event_name == 'workflow_dispatch' && inputs.full_install
         run: nvim --headless -u NONE -i NONE -n -c "lua dofile('scripts/install.lua').run()"
