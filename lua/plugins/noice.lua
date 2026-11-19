@@ -64,7 +64,7 @@ return {
                         height = "auto",
                     },
                     border = {
-                        style = "rounded",
+                        style = require("config.theme").border(),
                         padding = { 0, 1 },
                     },
                     win_options = {
@@ -86,7 +86,7 @@ return {
                         height = 10,
                     },
                     border = {
-                        style = "rounded",
+                        style = require("config.theme").border(),
                     },
                 },
             },

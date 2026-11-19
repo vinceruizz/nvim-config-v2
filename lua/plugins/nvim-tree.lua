@@ -100,44 +100,9 @@ require("nvim-tree").setup({
             end
             events.subscribe(events.Event.TreeOpen, refresh_focus)
             events.subscribe(events.Event.TreeRendered, refresh_focus)
-             -- Match our Midnight Glass theme
-            local set = vim.api.nvim_set_hl
+            -- Theme colors are shared with the editor and refreshed on switching.
+            require("config.theme").highlights()
 
-            set(0, "NvimTreeCursorLine", { link = "CursorLine" })
-            set(0, "NvimTreeCursorLineNr", { link = "CursorLineNr" })
-
-            set(0, "NvimTreeNormal", {
-                fg = "#e0d9c7",
-                bg = "NONE",
-            })
-
-            set(0, "NvimTreeNormalNC", {
-                fg = "#e0d9c7",
-                bg = "NONE",
-            })
-
-            set(0, "NvimTreeEndOfBuffer", {
-                bg = "NONE",
-            })
-
-            set(0, "NvimTreeWinSeparator", {
-                fg = "#46657e",
-                bg = "NONE",
-            })
-
-            set(0, "NvimTreeFolderName", {
-                fg = "#86dbf5",
-            })
-
-            set(0, "NvimTreeOpenedFolderName", {
-                fg = "#f5b66c",
-                bold = true,
-            })
-
-            set(0, "NvimTreeRootFolder", {
-                fg = "#f5b66c",
-                bold = true,
-            })
         end,
     },
 }

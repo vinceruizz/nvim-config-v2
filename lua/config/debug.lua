@@ -38,14 +38,7 @@ function M.setup()
     dap.listeners.after.event_initialized["debug_ui"] = function() ui.open() end
     -- Keep output and variables visible after exit; close with Space d u.
 
-    local function highlights()
-        vim.api.nvim_set_hl(0, "DapBreakpoint", { fg = "#f07886" })
-        vim.api.nvim_set_hl(0, "DapLogPoint", { fg = "#86dbf5" })
-        vim.api.nvim_set_hl(0, "DapStopped", { fg = "#f5b66c", bold = true })
-        vim.api.nvim_set_hl(0, "DapStoppedLine", { bg = "#344235" })
-    end
-    highlights()
-    vim.api.nvim_create_autocmd("ColorScheme", { callback = highlights })
+    require("config.theme").highlights()
     for name, sign in pairs({
         DapBreakpoint = { "●", "DapBreakpoint" },
         DapBreakpointCondition = { "◆", "DapBreakpoint" },

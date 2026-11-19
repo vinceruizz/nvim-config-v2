@@ -35,6 +35,9 @@ function M.cards()
             { "Ctrl h / j / k / l", "Focus left / lower / upper / right window" },
             { "[d / ]d", "Previous / next diagnostic" },
             { "Esc", "Clear search highlight; exit insert mode" },
+            { "Space u t", "Choose Forest Cartridge or Midnight" },
+            { "Space u b", "Toggle theme transparency" },
+            { ":ThemeReload", "Reload palette; saves also reload it live" },
         } },
         { title = "debugging", context = "Save your file; start from the project root", rows = debugging },
         { title = "project navigation", context = "Explorer and project search", rows = {

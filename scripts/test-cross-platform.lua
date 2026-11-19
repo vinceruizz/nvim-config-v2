@@ -14,8 +14,8 @@ local ok, err = xpcall(function()
   assert(not pcall(installer.platform,'FreeBSD','x86_64'))
  end)
  local source = root .. '/source'
- vim.fn.mkdir(source .. '/lua/config', 'p'); vim.fn.mkdir(source .. '/scripts', 'p')
- for _, name in ipairs({'init.lua','lazy-lock.json','install.sh','install.ps1','README.md','DEBUGGING.md','lua/config/file.lua','scripts/install.lua'}) do
+ vim.fn.mkdir(source .. '/lua/config', 'p'); vim.fn.mkdir(source .. '/scripts', 'p'); vim.fn.mkdir(source .. '/colors', 'p')
+ for _, name in ipairs({'init.lua','lazy-lock.json','install.sh','install.ps1','README.md','DEBUGGING.md','lua/config/file.lua','scripts/install.lua','colors/forest-cartridge.lua'}) do
   vim.fn.writefile({'source ' .. name}, source .. '/' .. name)
  end
  vim.fn.writefile({'do not deploy'}, source .. '/.private')
@@ -24,6 +24,7 @@ local ok, err = xpcall(function()
   installer.deploy(source,target)
   assert(vim.fn.readfile(target..'/init.lua')[1]=='source init.lua')
   assert(not uv.fs_stat(target..'/.private'))
+  assert(uv.fs_stat(target..'/colors/forest-cartridge.lua'))
  end)
  test('existing config backup', function()
   vim.fn.writefile({'keep'},target..'/custom')

@@ -120,7 +120,7 @@ function M.deploy(source, target)
     vim.fn.mkdir(parent, 'p')
     vim.fn.mkdir(stage, 'p')
     local ok, err = pcall(function()
-        for _, name in ipairs({ 'init.lua', 'lazy-lock.json', 'lua', 'scripts', 'install.sh', 'install.ps1', 'README.md', 'DEBUGGING.md' }) do
+        for _, name in ipairs({ 'init.lua', 'lazy-lock.json', 'lua', 'colors', 'scripts', 'install.sh', 'install.ps1', 'README.md', 'DEBUGGING.md' }) do
             copy(vim.fs.joinpath(source, name), vim.fs.joinpath(stage, name))
         end
         if uv.fs_lstat(target) then

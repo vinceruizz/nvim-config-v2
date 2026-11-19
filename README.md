@@ -1,6 +1,6 @@
 # Neovim Config
 
-My Neovim setup with a transparent theme, a file explorer, and debugging built in.
+My Neovim setup with switchable themes, a file explorer, and debugging built in.
 
 ## Features
 
@@ -58,6 +58,7 @@ On a Mac, finish any Apple Command Line Tools prompt and rerun if needed.
 | Shift F11 / Shift F5 | Step out / stop debugging |
 | Space du | Toggle debugger panels |
 | Space ? | Open the full cheat sheet |
+| Space ut / Space ub | Choose theme / toggle transparency |
 
 ## Debugging
 
@@ -72,8 +73,13 @@ language and project-specific launch settings.
 - **Plugins:** add a file in `lua/plugins/`.
 - **Shortcuts:** edit `lua/config/keymaps.lua`.
 - **Editor settings:** edit `lua/config/options.lua`.
-- **Theme:** edit `lua/config/theme.lua`.
+- **Themes:** edit `lua/themes/forest-cartridge.lua` or `lua/themes/midnight.lua`.
 - **Language tools:** edit `lua/config/lsp.lua`.
+
+**Forest Cartridge** is the default: moss green, amber and soft blue on near-black,
+with square borders and a retro status bar. **Midnight** keeps the original look.
+Save the active palette file to see changes instantly, or run `:ThemeReload`.
+Your theme and transparency choices are remembered between sessions.
 
 <details>
 <summary>Setup notes and troubleshooting</summary>

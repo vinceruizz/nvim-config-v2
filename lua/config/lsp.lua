@@ -16,7 +16,7 @@ function M.setup()
                 [vim.diagnostic.severity.WARN] = "●",
             },
         },
-        float = { border = "rounded", source = "if_many", focusable = false },
+        float = { border = require("config.theme").border(), source = "if_many", focusable = false },
     })
 
     vim.api.nvim_create_autocmd("LspAttach", {
@@ -29,7 +29,7 @@ function M.setup()
             map("gD", vim.lsp.buf.declaration, "Go to declaration")
             map("gr", vim.lsp.buf.references, "Find references")
             map("gi", vim.lsp.buf.implementation, "Go to implementation")
-            map("K", function() vim.lsp.buf.hover({ border = "rounded" }) end, "Show documentation")
+            map("K", function() vim.lsp.buf.hover({ border = require("config.theme").border() }) end, "Show documentation")
             map("<leader>rn", vim.lsp.buf.rename, "Rename symbol")
             map("<leader>la", vim.lsp.buf.code_action, "Show code actions")
             map("<leader>ld", vim.diagnostic.open_float, "Show diagnostics under cursor")

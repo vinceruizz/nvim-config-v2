@@ -93,7 +93,7 @@ if [ "$bootstrap" = 1 ]; then
     node -e 'if (Number(process.versions.node.split(".")[0]) < 22) process.exit(1)' \
         || fail 'Node.js 22+ is required for the language tools.'
 fi
-deploy_files "$source_dir" "$target" init.lua lazy-lock.json lua scripts install.sh install.ps1 README.md DEBUGGING.md
+deploy_files "$source_dir" "$target" init.lua lazy-lock.json lua colors scripts install.sh install.ps1 README.md DEBUGGING.md
 if [ "$font" = 1 ]; then install_font; fi
 if [ "$bootstrap" = 1 ]; then
     # Tell Neovim which XDG application name to use, including custom targets.

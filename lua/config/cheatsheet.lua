@@ -7,20 +7,6 @@ local function valid()
     return state.win and vim.api.nvim_win_is_valid(state.win)
 end
 
-local function highlights()
-    for name, spec in pairs({
-        Normal = { fg = "#e0d9c7", bg = "#101e2d" },
-        Border = { fg = "#46657e", bg = "#101e2d" },
-        Card = { fg = "#30495f" },
-        Title = { fg = "#86dbf5", bold = true },
-        Heading = { fg = "#f5b66c", bold = true },
-        Muted = { fg = "#94a8ba" },
-        Key = { fg = "#a9ddf1", bg = "#1e3548", bold = true },
-    }) do
-        vim.api.nvim_set_hl(0, "Cheat" .. name, spec)
-    end
-end
-
 -- Wrap by screen cells, including wide Unicode characters. Highlight offsets
 -- below still use bytes, as required by Neovim's extmark API.
 local function wrap(text, width)
@@ -54,6 +40,7 @@ local function pad(text, width)
 end
 
 local function card_lines(card, width)
+    local retro = require("config.theme").get().palette.retro
     local inner = width - 4
     local keys = math.min(23, math.floor((inner - 2) * 0.42))
     local description = inner - keys - 2
@@ -61,7 +48,7 @@ local function card_lines(card, width)
     local function full(text, group)
         result[#result + 1] = { { "│ ", "CheatCard" }, { pad(text, inner), group }, { " │", "CheatCard" } }
     end
-    result[#result + 1] = { { "╭" .. string.rep("─", width - 2) .. "╮", "CheatCard" } }
+    result[#result + 1] = { { (retro and "┌" or "╭") .. string.rep("─", width - 2) .. (retro and "┐" or "╮"), "CheatCard" } }
     for _, line in ipairs(wrap(card.title, inner)) do full(line, "CheatHeading") end
     for _, line in ipairs(wrap(card.context, inner)) do full(line, "CheatMuted") end
     full("", "CheatNormal")
@@ -75,7 +62,7 @@ local function card_lines(card, width)
         end
     end
     full("", "CheatNormal")
-    result[#result + 1] = { { "╰" .. string.rep("─", width - 2) .. "╯", "CheatCard" } }
+    result[#result + 1] = { { (retro and "└" or "╰") .. string.rep("─", width - 2) .. (retro and "┘" or "╯"), "CheatCard" } }
     return result
 end
 
@@ -166,7 +153,6 @@ end
 
 function M.toggle()
     if valid() then M.close(); return end
-    highlights()
     state.cards = require("config.cheatsheet_data").cards()
     state.buf = vim.api.nvim_create_buf(false, true)
     vim.bo[state.buf].bufhidden = "wipe"
@@ -174,7 +160,7 @@ function M.toggle()
     local width, height = dimensions()
     state.win = vim.api.nvim_open_win(state.buf, true, {
         relative = "editor", width = width, height = height, row = 1, col = 1,
-        style = "minimal", border = "rounded", zindex = 60,
+        style = "minimal", border = require("config.theme").border(), zindex = 60,
         title = "  NVIM  /  FIELD GUIDE  ", title_pos = "center",
         footer = "  /: find   c: clear   j/k: scroll   q: close  ", footer_pos = "center",
     })
@@ -197,7 +183,12 @@ function M.toggle()
     map("c", function() state.query = ""; render() end)
     local group = vim.api.nvim_create_augroup("NeovimCheatSheet", { clear = true })
     vim.api.nvim_create_autocmd("VimResized", { group = group, callback = render })
-    vim.api.nvim_create_autocmd("ColorScheme", { group = group, callback = highlights })
+    vim.api.nvim_create_autocmd("ColorScheme", { group = group, callback = function()
+        if not valid() then return end
+        local view = vim.fn.winsaveview()
+        render()
+        vim.fn.winrestview(view)
+    end })
     vim.api.nvim_create_autocmd("BufWipeout", {
         group = group, buffer = state.buf, once = true,
         callback = function() vim.api.nvim_clear_autocmds({ group = group }) end,
