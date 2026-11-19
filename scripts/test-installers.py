@@ -271,6 +271,20 @@ class Installers(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertFalse((Path(self.env['XDG_CONFIG_HOME']) / 'nvim').exists())
 
+    def test_pacman_respects_installed_zlib_provider(self):
+        env = dict(self.env, PATH=str(self.bin), WAYLAND_DISPLAY='')
+        self.mock('pacman', '#!/bin/sh\n'
+                  'if [ "$1" = -T ] && [ "$2" = zlib ]; then exit "$ZLIB_MISSING"; fi\n'
+                  'printf "%s\\n" "$*" > "$INSTALL_TEST_LOG"\n')
+        for missing in ('0', '127'):
+            with self.subTest(provider_missing=missing):
+                result = subprocess.run(['/bin/sh', str(NVIM / 'scripts/install-deps.sh'), str(self.root)],
+                                        env=dict(env, ZLIB_MISSING=missing), text=True, capture_output=True)
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                targets = self.log.read_text().split()
+                self.assertEqual(targets[:3], ['-Syu', '--needed', '--noconfirm'])
+                self.assertEqual('zlib' in targets, missing == '127')
+
     def test_full_linux_prerequisite_dispatch_is_offline(self):
         # Restrict PATH to mocks: no host package manager can ever execute.
         env = dict(self.env, PATH=str(self.bin), WAYLAND_DISPLAY='')

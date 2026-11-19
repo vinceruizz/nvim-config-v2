@@ -58,6 +58,11 @@ local ok, err = xpcall(function()
   installer.install({dry_run=true})
   installer.run_command=command
  end)
+ test('quiet commands capture stdout for checksum verification', function()
+  local output = installer.run_command({vim.v.progpath, '--headless', '-u', 'NONE', '-i', 'NONE',
+      '-c', [[lua io.write('checksum output')]], '-c', 'qa!'}, false, {quiet=true})
+  assert(output == 'checksum output')
+ end)
  test('Windows cmd wrapper quoting', function()
   local system=vim.system
   local captured

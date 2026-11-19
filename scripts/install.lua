@@ -28,8 +28,8 @@ function M.run_command(command, windows, options)
             "$ErrorActionPreference='Stop'; & " .. table.concat(escaped, ' ') .. '; exit $LASTEXITCODE' }
     end
     local result = vim.system(command, { cwd = options.cwd, text = true,
-        stdout = options.quiet and nil or function(_, data) if data then io.stdout:write(data); io.stdout:flush() end end,
-        stderr = options.quiet and nil or function(_, data) if data then io.stderr:write(data); io.stderr:flush() end end,
+        stdout = not options.quiet and function(_, data) if data then io.stdout:write(data); io.stdout:flush() end end or nil,
+        stderr = not options.quiet and function(_, data) if data then io.stderr:write(data); io.stderr:flush() end end or nil,
     }):wait(options.timeout or 1800000)
     assert(result.code == 0, 'Command failed (' .. tostring(result.code) .. '): ' .. table.concat(command, ' ')
         .. '\n' .. (result.stderr or 'See output above.'))
@@ -198,7 +198,7 @@ local function dependencies(ctx)
                 unpack(ctx.os == 'macos' and { '-a', '256', archive } or { archive }) }, false, { quiet = true })
             assert(output:sub(1, 64):lower() == digest:lower(), 'Node checksum mismatch')
         end
-        local node_dir = vim.fs.joinpath(ctx.tools, 'node', name:gsub('%.zip$', ''):gsub('%.tar%.gz$', ''))
+        local node_dir = vim.fs.joinpath(ctx.tools, 'node', (name:gsub('%.zip$', ''):gsub('%.tar%.gz$', '')))
         unpack_archive(archive, node_dir, ctx.windows)
         local node_root = only_directory(node_dir)
         path(ctx.windows and node_root or node_root .. '/bin')
@@ -220,7 +220,7 @@ local function dependencies(ctx)
                 unpack(ctx.os == 'macos' and { '-a', '256', jdk_archive } or { jdk_archive }) }, false, { quiet = true })
             assert(output:sub(1, 64):lower() == package.checksum:lower(), 'JDK checksum mismatch')
         end
-        local java_dir = vim.fs.joinpath(ctx.tools, 'java', package.name:gsub('%.zip$', ''):gsub('%.tar%.gz$', ''))
+        local java_dir = vim.fs.joinpath(ctx.tools, 'java', (package.name:gsub('%.zip$', ''):gsub('%.tar%.gz$', '')))
         unpack_archive(jdk_archive, java_dir, ctx.windows)
         local java_root = only_directory(java_dir) .. (ctx.os == 'macos' and '/Contents/Home' or '')
         manifest.env.JAVA_HOME = java_root; vim.env.JAVA_HOME = java_root; path(java_root .. '/bin')

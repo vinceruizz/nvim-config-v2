@@ -34,7 +34,10 @@ case "$(uname -s)" in
         elif have yum; then
             root yum install -y git ca-certificates unzip ripgrep gcc gcc-c++ make cmake python3 python3-pip tar gzip libicu openssl-libs zlib xclip
         elif have pacman; then
-            root pacman -Syu --needed --noconfirm git ca-certificates unzip ripgrep base-devel cmake python python-pip tar gzip icu openssl zlib xclip
+            set -- git ca-certificates unzip ripgrep base-devel cmake python python-pip tar gzip icu openssl xclip
+            # A compatible provider such as zlib-ng-compat can satisfy zlib.
+            if ! pacman -T zlib >/dev/null; then set -- "$@" zlib; fi
+            root pacman -Syu --needed --noconfirm "$@"
         elif have zypper; then
             root zypper --non-interactive install git ca-certificates unzip ripgrep gcc gcc-c++ make cmake python3 python3-pip tar gzip libicu openssl zlib xclip
         elif have apk; then

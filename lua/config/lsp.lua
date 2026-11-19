@@ -70,7 +70,8 @@ function M.setup()
         servers[#servers + 1] = "clangd"
     end
     require("mason-lspconfig").setup({
-        ensure_installed = servers,
+        -- The installer owns Mason package setup during bootstrap.
+        ensure_installed = vim.env.NVIM_INSTALL_BOOTSTRAP == "1" and {} or servers,
         -- Java is started by nvim-jdtls to preserve its existing debug integration.
         automatic_enable = { "lua_ls", "pyright", "ts_ls", "csharp_ls", "clangd" },
     })
