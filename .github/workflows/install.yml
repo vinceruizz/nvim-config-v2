@@ -1,0 +1,47 @@
+name: Cross-platform installer
+on:
+  push:
+    paths: ['scripts/**', 'install.sh', 'init.lua', 'lua/config/runtime.lua', '.github/workflows/install.yml']
+  pull_request:
+    paths: ['scripts/**', 'install.sh', 'init.lua', 'lua/config/runtime.lua', '.github/workflows/install.yml']
+  workflow_dispatch:
+    inputs:
+      full_install:
+        description: Install real dependencies, parsers and language tools on disposable runners
+        type: boolean
+        default: false
+permissions:
+  contents: read
+jobs:
+  installer:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Neovim on Linux
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          curl -fL https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz -o "$RUNNER_TEMP/nvim.tar.gz"
+          tar -xzf "$RUNNER_TEMP/nvim.tar.gz" -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/nvim-linux-x86_64/bin" >> "$GITHUB_PATH"
+      - name: Install Neovim on macOS
+        if: runner.os == 'macOS'
+        run: brew install neovim
+      - name: Install Neovim on Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          curl.exe -fL https://github.com/neovim/neovim/releases/latest/download/nvim-win64.zip -o "$env:RUNNER_TEMP\nvim.zip"
+          if ($LASTEXITCODE -ne 0) { throw 'Download failed' }
+          Expand-Archive "$env:RUNNER_TEMP\nvim.zip" "$env:RUNNER_TEMP\nvim"
+          "$env:RUNNER_TEMP\nvim\nvim-win64\bin" | Out-File -Append -Encoding utf8 $env:GITHUB_PATH
+      - name: Offline installer tests
+        run: nvim --headless -u NONE -i NONE -n -c "luafile scripts/test-cross-platform.lua"
+      - name: Full installer smoke test
+        if: github.event_name == 'workflow_dispatch' && inputs.full_install
+        run: nvim --headless -u NONE -i NONE -n -c "lua dofile('scripts/install.lua').run()"

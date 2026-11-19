@@ -4,7 +4,7 @@ set -eu
 app=nvim
 source_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
 . "$source_dir/scripts/install-common.sh"
-install_deps=0; bootstrap=0; build_nvim=0; font=0; dry_run=0
+install_deps=0; bootstrap=0; build_nvim=0; font=0; dry_run=0; full=0
 target="${XDG_CONFIG_HOME:-$HOME/.config}/${NVIM_APPNAME:-nvim}"
 usage() {
     cat <<'HELP'
@@ -15,10 +15,11 @@ Usage: sh install.sh [options]
   --bootstrap              Install locked plugins, parsers, LSPs and debug adapters
   --font                   Install JetBrainsMono Nerd Font for this user
   --config-only            Copy/backup config only (the default)
+  --full                   Detect OS, install all dependencies, deploy and bootstrap
   --dry-run                Print the plan without writing or downloading anything
   --help                   Show this help
-No sudo is used unless --install-deps is given. Existing configs are backed up.
-Install JDK 21+, .NET SDK and tree-sitter CLI 0.26.1+ separately for full tooling.
+System packages may require sudo with --install-deps or --full. Existing configs are backed up.
+--full also installs the JDK, .NET SDK and tree-sitter CLI; legacy --bootstrap expects them installed.
 HELP
 }
 while [ "$#" -gt 0 ]; do
@@ -28,7 +29,8 @@ while [ "$#" -gt 0 ]; do
         --build-neovim) build_nvim=1 ;;
         --bootstrap) bootstrap=1 ;;
         --font) font=1 ;;
-        --config-only) install_deps=0; bootstrap=0; build_nvim=0; font=0 ;;
+        --config-only) install_deps=0; bootstrap=0; build_nvim=0; font=0; full=0 ;;
+        --full) full=1 ;;
         --dry-run) dry_run=1 ;;
         --help|-h) usage; exit 0 ;;
         *) fail "Unknown option: $1" ;;
@@ -36,6 +38,13 @@ while [ "$#" -gt 0 ]; do
     shift
 done
 case "$target" in /*) ;; *) fail '--target must be absolute.' ;; esac
+if [ "$full" = 1 ]; then
+    need nvim
+    NVIM_INSTALL_SOURCE="$source_dir" NVIM_INSTALL_TARGET="$target" NVIM_INSTALL_DRY_RUN="$dry_run" \
+        nvim --headless -u NONE -i NONE -n \
+        -c 'lua dofile(vim.env.NVIM_INSTALL_SOURCE .. "/scripts/install.lua").run({target=vim.env.NVIM_INSTALL_TARGET})'
+    exit $?
+fi
 if [ "$dry_run" = 1 ]; then
     note "Platform: $platform; source: $source_dir; destination: $target"
     note "Backup existing config; install-deps=$install_deps; build-neovim=$build_nvim; bootstrap=$bootstrap; font=$font"

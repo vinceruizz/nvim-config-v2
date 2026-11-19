@@ -1,4 +1,5 @@
--- Called only by install.sh --bootstrap. Never run editor setup as root.
+-- Called by the cross-platform installer or install.sh --bootstrap.
+-- Never run editor setup as root.
 local function bootstrap()
     require("lazy").install({ wait = true, lockfile = true })
     require("lazy").restore({ wait = true })

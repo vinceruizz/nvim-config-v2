@@ -1,5 +1,6 @@
 vim.g.mapleader = " "
 
+require("config.runtime").setup()
 require("config.options")
 require("config.keymaps")
 require("config.lazy")

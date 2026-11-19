@@ -3,7 +3,16 @@ local M = {}
 function M.setup()
     local dap, ui = require("dap"), require("dapui")
     local mason = require("mason.settings").current.install_root_dir
-    local function bin(name) return mason .. "/bin/" .. name end
+    local windows = vim.fn.has("win32") == 1
+    local function bin(name)
+        local path = mason .. "/bin/" .. name
+        if windows then
+            for _, suffix in ipairs({ ".cmd", ".exe", ".bat" }) do
+                if vim.fn.filereadable(path .. suffix) == 1 then return path .. suffix end
+            end
+        end
+        return path
+    end
 
     ui.setup({
         layouts = {
@@ -49,7 +58,10 @@ function M.setup()
 
     dap.adapters.codelldb = {
         type = "server", port = "${port}",
-        executable = { command = bin("codelldb"), args = { "--port", "${port}" } },
+        executable = {
+            command = windows and mason .. "/packages/codelldb/extension/adapter/codelldb.exe" or bin("codelldb"),
+            args = { "--port", "${port}" },
+        },
     }
     for _, ft in ipairs({ "c", "cpp" }) do
         dap.configurations[ft] = {
@@ -72,7 +84,7 @@ function M.setup()
 
     dap.adapters.python = {
         type = "executable",
-        command = mason .. "/packages/debugpy/venv/bin/python",
+        command = mason .. "/packages/debugpy/venv/" .. (windows and "Scripts/python.exe" or "bin/python"),
         args = { "-m", "debugpy.adapter" },
     }
     dap.configurations.python = {
@@ -82,11 +94,12 @@ function M.setup()
             console = "integratedTerminal", justMyCode = false,
             pythonPath = function()
                 for _, env in ipairs({ vim.env.VIRTUAL_ENV or "", vim.fn.getcwd() .. "/.venv", vim.fn.getcwd() .. "/venv" }) do
-                    if env ~= "" and vim.fn.executable(env .. "/bin/python") == 1 then
-                        return env .. "/bin/python"
+                    local executable = env .. (windows and "/Scripts/python.exe" or "/bin/python")
+                    if env ~= "" and vim.fn.executable(executable) == 1 then
+                        return executable
                     end
                 end
-                return vim.fn.exepath("python3")
+                return vim.env.NVIM_PYTHON or vim.fn.exepath(windows and "python" or "python3")
             end,
         },
         {
@@ -99,7 +112,10 @@ function M.setup()
     for _, adapter in ipairs({ "pwa-node", "pwa-chrome" }) do
         dap.adapters[adapter] = {
             type = "server", host = "127.0.0.1", port = "${port}",
-            executable = { command = bin("js-debug-adapter"), args = { "${port}", "127.0.0.1" } },
+            executable = windows and {
+                command = "node",
+                args = { mason .. "/packages/js-debug-adapter/js-debug/src/dapDebugServer.js", "${port}", "127.0.0.1" },
+            } or { command = bin("js-debug-adapter"), args = { "${port}", "127.0.0.1" } },
         }
     end
     -- Accept the common VS Code launch.json adapter names too.
@@ -134,7 +150,8 @@ function M.setup()
     local apple_silicon = vim.fn.has("mac") == 1 and vim.uv.os_uname().machine == "arm64"
     dap.adapters.coreclr = {
         type = "executable",
-        command = apple_silicon and native_dotnet or bin("netcoredbg"),
+        command = apple_silicon and native_dotnet
+            or windows and mason .. "/packages/netcoredbg/netcoredbg/netcoredbg.exe" or bin("netcoredbg"),
         args = { "--interpreter=vscode" },
     }
     dap.configurations.cs = {

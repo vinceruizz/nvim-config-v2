@@ -23,6 +23,15 @@ local function on_attach(bufnr)
         }
     end
 
+    vim.keymap.set("n", "yd", function()
+        require("config.explorer").copy_path()
+    end, opts("Copy highlighted file or folder path"))
+
+    -- Include the extension in both rename prompts.
+    for _, key in ipairs({ "e", "r" }) do
+        vim.keymap.set("n", key, api.fs.rename, opts("Rename including extension"))
+    end
+
     -- L: Expand folder or open file
     vim.keymap.set("n", "l", function()
         local node = api.tree.get_node_under_cursor()
@@ -62,7 +71,7 @@ require("nvim-tree").setup({
     },
 
     renderer = {
-        group_empty = true,
+        group_empty = false,
         highlight_git = true,
         indent_markers = {
             enable = true,
@@ -71,6 +80,7 @@ require("nvim-tree").setup({
 
     filters = {
         dotfiles = false,
+        git_ignored = false,
     },
 
     update_focused_file = {
@@ -78,8 +88,23 @@ require("nvim-tree").setup({
         update_root = false,
     },
 })
+            -- Directory startup reuses the first window and applies its options
+            -- with autocommands suppressed. Refresh after the tree is drawn,
+            -- when its buffer and window options are fully initialized.
+            local events = require("nvim-tree.api").events
+            local function refresh_focus()
+                vim.schedule(function()
+                    require("config.options").update_cursorline()
+                    vim.cmd("redraw")
+                end)
+            end
+            events.subscribe(events.Event.TreeOpen, refresh_focus)
+            events.subscribe(events.Event.TreeRendered, refresh_focus)
              -- Match our Midnight Glass theme
             local set = vim.api.nvim_set_hl
+
+            set(0, "NvimTreeCursorLine", { link = "CursorLine" })
+            set(0, "NvimTreeCursorLineNr", { link = "CursorLineNr" })
 
             set(0, "NvimTreeNormal", {
                 fg = "#e0d9c7",

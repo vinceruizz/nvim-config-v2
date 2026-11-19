@@ -2,11 +2,13 @@
 """Offline installer checks. Package commands are mocks, never real installs."""
 import argparse
 import os
+import re
 from pathlib import Path
 import shutil
 import subprocess
 import tarfile
 import tempfile
+import sys
 import unittest
 
 parser = argparse.ArgumentParser()
@@ -182,6 +184,78 @@ class Installers(unittest.TestCase):
             self.run_installer(app, '--target', target, expect=1)
             self.assertEqual((target / 'keep').read_text(), 'original config')
         self.assertEqual(list(self.root.glob('.*-install.*')), [])
+
+    def test_readme_quick_start_blocks_work_without_path_edits(self):
+        self.mock('git', '#!' + sys.executable + '\n'
+                  'import os, shutil, sys\n'
+                  'from pathlib import Path\n'
+                  'assert sys.argv[1:4] == ["clone", "--depth", "1"]\n'
+                  'assert sys.argv[4] == os.environ["README_TEST_URL"]\n'
+                  'Path(os.environ["README_TEST_CLONE"]).write_text(sys.argv[-1])\n'
+                  'shutil.copytree(os.environ["README_TEST_SOURCE"], sys.argv[-1], '
+                  'ignore=shutil.ignore_patterns(".git", "backups", "__pycache__"))\n')
+        self.mock('apt-get', '#!/bin/sh\nexit 0\n')
+        self.mock('fc-cache', '#!/bin/sh\nexit 0\n')
+        self.mock('curl', '#!' + sys.executable + '\n'
+                  'import sys, zipfile\n'
+                  'with zipfile.ZipFile(sys.argv[sys.argv.index("-o")+1], "w") as archive:\n'
+                  '    archive.writestr("TestFont.ttf", b"test fixture")\n')
+        self.env['XDG_DATA_HOME'] = str(self.root / 'data')
+        self.env['README_TEST_CLONE'] = str(self.root / 'clone-path')
+        for source, url, indices in [
+            (KITTY, 'https://github.com/vinceruizz/kitty-config-v2.git', [0, 1]),
+        ]:
+            blocks = re.findall(r'```sh\n(.*?)```', (source / 'README.md').read_text(), re.S)
+            for block in blocks:
+                parsed = subprocess.run(['/bin/sh', '-n'], input=block, text=True, capture_output=True)
+                self.assertEqual(parsed.returncode, 0, parsed.stderr)
+                self.assertNotIn('/path/to/', block)
+            self.env['README_TEST_SOURCE'] = str(source)
+            self.env['README_TEST_URL'] = url
+            for index in indices:
+                result = subprocess.run(['/bin/sh', '-c', blocks[index]], env=self.env,
+                                        text=True, capture_output=True)
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                clone_path = Path(Path(self.env['README_TEST_CLONE']).read_text())
+                self.assertFalse(clone_path.parent.exists(), 'Quick start must clean up its download')
+
+    def test_neovim_universal_readme_command(self):
+        nvim = shutil.which('nvim')
+        if not nvim:
+            self.skipTest('Neovim needed to check the universal command')
+        blocks = re.findall(r'```sh\n(.*?)```', (NVIM / 'README.md').read_text(), re.S)
+        for block in blocks:
+            result = subprocess.run(['/bin/sh', '-n'], input=block, text=True, capture_output=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+        # Serve the real installer locally instead of making a network request.
+        self.mock('curl', '#!' + sys.executable + '\n'
+                  'import os, sys\n'
+                  'from pathlib import Path\n'
+                  'assert "https://raw.githubusercontent.com/vinceruizz/nvim-config-v2/main/scripts/install.lua" in sys.argv\n'
+                  'sys.stdout.write(Path(os.environ["README_INSTALLER"]).read_text())\n')
+        self.mock('nvim', '#!/bin/sh\nexec ' + repr(nvim) + ' "$@"\n')
+        self.env['README_INSTALLER'] = str(NVIM / 'scripts/install.lua')
+        self.env['NVIM_INSTALL_DRY_RUN'] = '1'
+        self.env['NVIM_LOG_FILE'] = str(self.root / 'nvim.log')
+        result = subprocess.run(['/bin/sh', '-c', blocks[0]], env=self.env,
+                                text=True, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('Platform:', result.stdout + result.stderr)
+        self.assertFalse((Path(self.env['XDG_CONFIG_HOME']) / 'nvim').exists())
+
+    def test_full_linux_prerequisite_dispatch_is_offline(self):
+        # Restrict PATH to mocks: no host package manager can ever execute.
+        env = dict(self.env, PATH=str(self.bin), WAYLAND_DISPLAY='')
+        managers = ['apt-get', 'dnf', 'yum', 'pacman', 'zypper', 'apk',
+                    'xbps-install', 'emerge', 'eopkg', 'nix']
+        for manager in managers:
+            executable = self.mock(manager, '#!/bin/sh\nprintf "%s\\n" "$*" >> "$INSTALL_TEST_LOG"\n')
+            result = subprocess.run(['/bin/sh', str(NVIM / 'scripts/install-deps.sh'), str(self.root)],
+                                    env=env, text=True, capture_output=True)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn('ripgrep', self.log.read_text())
+            executable.unlink()
+            self.log.unlink()
 
 if __name__ == '__main__':
     unittest.main(argv=['test-installers.py', *remaining])

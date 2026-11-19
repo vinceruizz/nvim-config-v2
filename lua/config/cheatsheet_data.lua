@@ -20,8 +20,10 @@ function M.cards()
     return {
         { title = "movement", context = "Normal mode unless noted", rows = {
             { "h / j / k / l", "Left / down / up / right" },
-            { "w / b / e", "Next word / previous word / word end" },
-            { "0 / ^ / $", "Line start / first nonblank / line end" },
+            { "w / b", "Next / previous word; also stop at ; and )" },
+            { "e / ge", "Next / previous word end; stop at ; and )" },
+            { "0", "First nonblank; press again for line start" },
+            { "^ / $", "First nonblank / line end" },
             { "gg / G", "First / last line" },
             { "5j / 5k", "Move using relative line numbers" },
             { "Ctrl d / u", "Half page down / up" },
@@ -36,7 +38,7 @@ function M.cards()
         } },
         { title = "debugging", context = "Save your file; start from the project root", rows = debugging },
         { title = "project navigation", context = "Explorer and project search", rows = {
-            { "Space e", "Open or focus file explorer" },
+            { "Space e", "Switch focus: editor / explorer" },
             { "Space ff", "Find files, including hidden files" },
             { "Space fg", "Search project contents" },
             { "Space fw", "Find word under cursor across files" },
@@ -49,8 +51,10 @@ function M.cards()
             { "Explorer: l / h", "Open or expand / collapse or parent" },
             { "Explorer: Enter", "Open selected file or folder" },
             { "Explorer: -", "Change root to parent directory" },
-            { "Explorer: a / r", "Create / rename file or folder" },
+            { "Explorer: a", "Create file or folder" },
+            { "Explorer: e / r", "Rename file, including extension" },
             { "Explorer: c / x / p", "Copy / cut / paste" },
+            { "Explorer: yd", "Copy highlighted file or folder path" },
             { "Explorer: H / I", "Toggle hidden / Git-ignored files" },
             { "Explorer: R / g?", "Refresh / show all explorer shortcuts" },
             { "Picker: Ctrl n / p", "Next / previous search result" },
