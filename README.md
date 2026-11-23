@@ -6,6 +6,7 @@ My Neovim setup with switchable themes, a file explorer, and debugging built in.
 
 - File explorer and project-wide search
 - Go to definitions, find references, and rename symbols
+- Automatic cursor-side suggestions with a scrollable menu and documentation
 - Debugger with breakpoints, stepping, variables and watches
 - Syntax highlighting and automatic bracket closing
 - Terminal and Codex panels that stay running when hidden
@@ -47,6 +48,7 @@ On a Mac, finish any Apple Command Line Tools prompt and rerun if needed.
 | Keys | Action |
 | --- | --- |
 | Space e | Switch between code and explorer |
+| Space fd / :Project | Change project folder by path |
 | Space ff / Space fg | Find files / search project text |
 | Space tt | Toggle terminal |
 | Space cc | Toggle Codex |
@@ -59,6 +61,55 @@ On a Mac, finish any Apple Command Line Tools prompt and rerun if needed.
 | Space du | Toggle debugger panels |
 | Space ? | Open the full cheat sheet |
 | Space ut / Space ub | Choose theme / toggle transparency |
+
+## Changing project folders
+
+Press **Space fd** (or run **:Project**) to enter a folder path, with directory
+completion. Relative paths start at Neovim's current working directory (`:pwd`);
+absolute paths and `~` are supported. You can also enter the path directly:
+
+```vim
+:Project ../another-project
+:Project ~/projects/my-app
+:Project /absolute/path/to/project
+```
+
+This updates the explorer, Neovim's working directory, and project searches.
+Open files remain open, and reopening the explorer keeps the selected project.
+Existing terminal processes keep their own working directories.
+
+## Suggestions
+
+Suggestions appear beside the cursor as you type in **Python, JavaScript/TypeScript,
+C/C++, C#, Java, and Lua**, once the file's language server is ready. The menu shows
+up to ten rows and scrolls through longer lists; selecting an item shows available
+documentation.
+
+Matches re-rank as you type, using fuzzy matching with language-server ranking
+to break ties. C/C++ suggestions focus on visible scopes; type `std::` to browse
+standard-library names instead of seeing unrelated namespaces mixed in.
+
+The menu stays hidden while naming declarations, such as `int newName`,
+`const newName`, `def newName`, class names, and parameters. Types, initializer
+expressions, and member references still get suggestions; the explicit `snip`
+prefix also remains available. This uses syntax context, so an ambiguous bare
+name (such as Python's `newName` before typing `=`) still gets completion.
+
+- **Tab / Shift Tab**, **Down / Up**, or **Ctrl n / p**: navigate suggestions.
+- **Enter** or **Ctrl y**: accept the selected suggestion. Enter inserts a normal
+  newline if nothing is selected.
+- **Ctrl Space**: request suggestions manually (**Ctrl x, Ctrl o** also works).
+- **Ctrl e**: dismiss the menu and keep typing.
+
+Tab still indents when the menu is closed. Normal suggestions include keywords,
+variables, functions, methods, types, fields, and imports. Function-call argument
+placeholders remain available, but code templates are hidden.
+
+Type **snip** to browse explicit templates, then narrow the name (for example,
+**snipmain**, **snipif**, **snipfor**, or **snipfn**, depending on the language).
+Accept with Enter; **Ctrl j / Ctrl k** move between template fields. These starter
+templates live in `lua/config/snippets.lua`; server-provided code templates are
+filtered out of the normal menu.
 
 ## Debugging
 

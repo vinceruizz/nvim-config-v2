@@ -42,6 +42,7 @@ function M.cards()
         { title = "debugging", context = "Save your file; start from the project root", rows = debugging },
         { title = "project navigation", context = "Explorer and project search", rows = {
             { "Space e", "Switch focus: editor / explorer" },
+            { "Space fd / :Project", "Change project folder by relative or absolute path" },
             { "Space ff", "Find files, including hidden files" },
             { "Space fg", "Search project contents" },
             { "Space fw", "Find word under cursor across files" },
@@ -77,7 +78,13 @@ function M.cards()
             { "Space ld", "Show diagnostics under cursor" },
             { "Space lq", "List this file's diagnostics" },
             { "[d / ]d", "Previous / next diagnostic (no popup)" },
-            { "Insert: Ctrl x, Ctrl o", "Request LSP completion" },
+            { "Insert: type / Ctrl Space", "Automatic suggestions / request suggestions" },
+            { "Insert: Tab / Shift Tab", "Next / previous suggestion (also arrows)" },
+            { "Insert: Enter / Ctrl y", "Accept selected suggestion" },
+            { "Insert: Ctrl e", "Dismiss suggestions; keep typing" },
+            { "Insert: snip", "Show templates (snipmain, snipfor, etc.)" },
+            { "Snippet: Ctrl j / k", "Next / previous template field" },
+            { "Insert: Ctrl x, Ctrl o", "Request LSP completion (alternate)" },
             { ":Mason", "Manage language servers" },
         } },
         { title = "Codex", context = "Persistent right panel; project-root context", rows = {

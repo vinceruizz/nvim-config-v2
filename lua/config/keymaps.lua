@@ -69,6 +69,10 @@ vim.keymap.set("n", "<leader>e", function()
 end, {
     desc = "Switch focus between editor and explorer",
 })
+vim.keymap.set("n", "<leader>fd", function()
+    require("config.explorer").prompt_project()
+end, { desc = "Change project folder by path" })
+
 -- Get the intended search root
 local function explorer_root()
     local ok, core = pcall(require, "nvim-tree.core")

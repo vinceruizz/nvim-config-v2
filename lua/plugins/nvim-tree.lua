@@ -63,6 +63,7 @@ local function on_attach(bufnr)
 end
 require("nvim-tree").setup({
     on_attach = on_attach,
+    sync_root_with_cwd = true,
 
     view = {
         width = 32,

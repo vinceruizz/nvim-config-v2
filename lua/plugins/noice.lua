@@ -38,10 +38,9 @@ return {
                 },
             },
 
-            -- Autocomplete suggestions
+            -- Keep completion at the cursor using Neovim's native popup menu.
             popupmenu = {
-                enabled = true,
-                backend = "nui",
+                enabled = false,
             },
 
             -- Keep notifications minimal

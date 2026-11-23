@@ -58,6 +58,7 @@ opt.smartcase = true
 opt.incsearch = true
 
 -- Editing
+opt.confirm = true -- Offer to save unsaved files when quitting or closing them.
 opt.mouse = "a"
 opt.clipboard = "unnamedplus"
 opt.undofile = true

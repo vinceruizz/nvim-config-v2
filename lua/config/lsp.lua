@@ -35,7 +35,8 @@ function M.setup()
             map("<leader>ld", vim.diagnostic.open_float, "Show diagnostics under cursor")
             map("<leader>lq", vim.diagnostic.setloclist, "List buffer diagnostics")
 
-            -- Built-in completion is manual: Ctrl-X Ctrl-O in Insert mode.
+            require("config.completion").attach(vim.lsp.get_client_by_id(event.data.client_id), event.buf)
+            -- Retain the standard manual completion shortcut too.
             vim.bo[event.buf].omnifunc = "v:lua.vim.lsp.omnifunc"
             vim.lsp.inlay_hint.enable(false, { bufnr = event.buf })
             vim.lsp.document_color.enable(false, { bufnr = event.buf })
@@ -64,6 +65,11 @@ function M.setup()
     })
     vim.lsp.config("pyright", {
         settings = { python = { analysis = { diagnosticMode = "openFilesOnly", typeCheckingMode = "basic" } } },
+    })
+    vim.lsp.config("clangd", {
+        -- Avoid flooding unqualified names with symbols from other namespaces.
+        -- Explicit qualifiers such as std:: still complete normally.
+        cmd = { "clangd", "--all-scopes-completion=false" },
     })
     local servers = { "lua_ls", "pyright", "ts_ls", "csharp_ls", "jdtls" }
     if vim.fn.executable("clangd") ~= 1 then
